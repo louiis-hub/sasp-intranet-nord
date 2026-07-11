@@ -1,4 +1,4 @@
-// ══════════════════════════════════════════════════════════════════
+﻿// ══════════════════════════════════════════════════════════════════
 //  CENTRALE PA — app.js
 // ══════════════════════════════════════════════════════════════════
 
@@ -1208,6 +1208,7 @@ async function renderAgents() {
         (canWrite() ? '<button class="btn btn-primary btn-sm" onclick="openAgentModal(null)">+ Ajouter un agent</button>' : '') +
         '<button class="btn btn-ghost btn-sm" onclick="showMatriculesDispos()">🔢 Matricules dispo</button>' +
         (isAdmin() ? '<button class="btn btn-ghost btn-sm" onclick="syncAllAgentsToDiscord()">🔄 Sync Discord</button>' : '') +
+        (isAdmin() ? '<button class="btn btn-ghost btn-sm" onclick="importAgentsFromDiscord()">Importer Discord</button>' : '') +
         (canWrite() ? '<button class="btn btn-ghost btn-sm" onclick="navigate(\'completude\')">🗂️ Complétude</button>' : '') +
       '</div>' +
     '</div>' +
@@ -1245,6 +1246,81 @@ function agentSearch(v) {
   _searchTimer = setTimeout(function(){ _agentFilters.search = v; renderAgents(); }, 280);
 }
 function agentFilter(key, val) { _agentFilters[key] = val; renderAgents(); }
+
+async function importAgentsFromDiscord() {
+  if (!isAdmin()) return;
+  if (!confirm('Importer les agents depuis Discord Nord ?\n\nLe bot va lire les pseudos au format [matricule] Prenom Nom et creer uniquement les fiches manquantes.')) return;
+  var loader = toastLoading('Lecture du Discord Nord...');
+  try {
+    var roleIds = (typeof ROLE_AGENT_IDS !== 'undefined' ? ROLE_AGENT_IDS : []).join(',');
+    var res = await fetch(workerUrl('/discord/agents-roster', { role_ids: roleIds, limit: 1000 }), { cache: 'no-store' });
+    var data = await res.json();
+    if (!data.ok) throw new Error(data.hint || data.error || 'Impossible de lire les membres Discord.');
+    var roster = data.agents || [];
+    var existing = await DB.getAgents({});
+    var archived = await DB.getArchivedAgents('');
+    existing = existing.concat(archived || []);
+    var existingDiscord = {};
+    var existingMatricules = {};
+    existing.forEach(function(a) {
+      if (a.discord_id) existingDiscord[String(a.discord_id)] = true;
+      if (a.matricule) existingMatricules[String(a.matricule).toUpperCase()] = true;
+    });
+    var created = 0;
+    var skipped = 0;
+    var errors = [];
+    for (var i = 0; i < roster.length; i++) {
+      var item = roster[i];
+      var matKey = String(item.matricule || '').toUpperCase();
+      if (!item.discord_id || !item.matricule || !item.prenom || !item.nom || existingDiscord[String(item.discord_id)] || existingMatricules[matKey]) {
+        skipped++;
+        continue;
+      }
+      var payload = {
+        matricule: item.matricule,
+        prenom: item.prenom,
+        nom: item.nom,
+        discord_id: item.discord_id,
+        grade: item.grade || 'Cadet',
+        statut: 'En service',
+        date_recrutement: new Date().toISOString().slice(0, 10),
+        unites: item.divisions || [],
+        ppa1: !!item.ppa1,
+        ppa2: !!item.ppa2,
+        ppa3: !!item.ppa3,
+        notes: 'Fiche creee automatiquement depuis Discord.'
+      };
+      var createRes = await DB.createAgent(payload);
+      if (createRes.error) {
+        errors.push(item.display_name + ' : ' + createRes.error.message);
+        continue;
+      }
+      existingDiscord[String(item.discord_id)] = true;
+      existingMatricules[matKey] = true;
+      created++;
+    }
+    loader.done(created + ' fiche(s) creee(s), ' + skipped + ' ignoree(s).', errors.length ? 'error' : 'success');
+    if (errors.length) {
+      openModal({
+        eyebrow: 'IMPORT DISCORD',
+        title: 'Import termine avec erreurs',
+        body: '<p class="text-muted">Certaines fiches n ont pas pu etre creees.</p><pre style="white-space:pre-wrap;font-size:.8rem">' + esc(errors.slice(0, 20).join('\n')) + '</pre>',
+        footer: '<button class="btn btn-primary" onclick="closeModal()">OK</button>'
+      });
+    }
+    if (created) {
+      refreshAgentList();
+      sendLog('Import Discord agents', 0x3498db, [
+        { name: 'Fiches creees', value: String(created), inline: true },
+        { name: 'Ignorees', value: String(skipped), inline: true },
+        { name: 'Par', value: _whoAmI(), inline: false }
+      ]);
+    }
+    await renderAgents();
+  } catch (e) {
+    loader.done('Erreur import Discord : ' + e.message, 'error');
+  }
+}
 
 // ── Agent modal (add / edit) ──────────────────────────────────────
 async function openAgentModal(id) {

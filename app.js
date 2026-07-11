@@ -1191,7 +1191,7 @@ async function renderFAQ() {
     '<div class="flex-between mb-20 flex-wrap gap-8">' +
       '<div><h1 style="font-size:1.4rem">FAQ SASP Nord</h1><p class="text-muted" style="font-size:.84rem;margin-top:3px">Guide rapide pour utiliser l intranet sans casser les donnees.</p></div>' +
     '</div>' +
-    '<div class="grid2">' +
+    '<div class="faq-grid">' +
       faqBlock('Premiere connexion', '<p>Connectez-vous avec Discord. Le site verifie vos roles sur le Discord SASP Nord. Les roles <b>Admin</b> et <b>Commandant</b> donnent les acces administrateur.</p>') +
       faqBlock('Importer les agents depuis Discord', '<p>Allez dans <b>Agents</b>, puis cliquez sur <b>Importer Discord</b>. Le bot lit les membres qui ont le role agent Nord et cree les fiches manquantes.</p><p>Le pseudo Discord doit etre au format <b>[matricule] Prenom Nom</b>, par exemple <b>[111] Pedro Delgado</b>.</p>' + faqLink('agents', 'Ouvrir Agents')) +
       faqBlock('Ajouter un agent manuellement', '<p>Allez dans <b>Agents</b>, cliquez sur <b>Ajouter un agent</b>, remplissez au minimum prenom, nom, matricule, grade et Discord ID, puis enregistrez.</p>' + faqLink('agents', 'Ouvrir Agents')) +

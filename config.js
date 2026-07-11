@@ -3,8 +3,8 @@ var SITE_KEY       = 'nord';
 var SITE_LABEL     = 'SASP NORD';
 
 // A remplacer apres creation du projet Supabase Nord.
-var SUPABASE_URL   = 'SUPABASE_NORD_URL_A_REMPLACER';
-var SUPABASE_ANON  = 'SUPABASE_NORD_ANON_KEY_A_REMPLACER';
+var SUPABASE_URL   = 'https://zvyyqqeqqruzqrmbqkkh.supabase.co';
+var SUPABASE_ANON  = 'sb_publishable_nPQLUARYUA013bY588A4VA_9UQUe9Rh';
 
 var GUILD_ID        = '1516510943318642950';
 var ROLE_ADMIN_IDS  = ['1525580957988425809'];

@@ -24,11 +24,11 @@ var GRADE_SALAIRE = {
   'Lieutenant I':        500,
   'Sergeant II':         450,
   'Sergeant I':          400,
-  'Senior Lead Officer': 300,
+  'Senior Lead Trooper': 300,
   'Trooper III':         250,
   'Trooper II':          200,
   'Trooper I':           150,
-  'Rookie':              100
+  'Cadet':               100
 };
 function calcSalaire(grade, seconds) {
   var rate = GRADE_SALAIRE[grade] || GRADE_SALAIRE['Trooper II'];
@@ -47,12 +47,29 @@ var LOG_WORKER  = WORKER_BASE + '/log';
 var LOG_TOKEN   = 'SASPlogs2026!';
 var TRACKED_DIVISIONS = ['CID','SWAT','PA','CNU','TU','SYND','LP'];
 
+function workerUrl(path, params) {
+  var q = new URLSearchParams(params || {});
+  if (typeof GUILD_ID !== 'undefined' && GUILD_ID) q.set('guild_id', GUILD_ID);
+  var qs = q.toString();
+  return WORKER_BASE + path + (qs ? '?' + qs : '');
+}
+
+function withWorkerContext(payload) {
+  var body = Object.assign({}, payload || {});
+  if (typeof GUILD_ID !== 'undefined' && GUILD_ID) body.guild_id = GUILD_ID;
+  if (typeof SITE_KEY !== 'undefined' && SITE_KEY) body.site_key = SITE_KEY;
+  return body;
+}
+
 function refreshAgentList() {
   DB.getAgents({}).then(function(agents) {
     fetch(WORKER_BASE + '/update-agent-list', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-log-token': LOG_TOKEN },
-      body: JSON.stringify({ agents: agents.map(function(a) { return { matricule: a.matricule, prenom: a.prenom, nom: a.nom, telephone: a.telephone }; }) })
+      body: JSON.stringify(withWorkerContext({
+        channel_id: typeof AGENT_LIST_CHANNEL_ID !== 'undefined' ? AGENT_LIST_CHANNEL_ID : null,
+        agents: agents.map(function(a) { return { matricule: a.matricule, prenom: a.prenom, nom: a.nom, telephone: a.telephone }; })
+      }))
     }).catch(function(e) { console.warn('refreshAgentList:', e); });
   }).catch(function(e) { console.warn('refreshAgentList fetch agents:', e); });
 }
@@ -62,7 +79,7 @@ function syncDiscordRoles(discordId, addCodes, removeCodes) {
   fetch(WORKER_BASE + '/sync-member-roles', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', 'x-log-token': LOG_TOKEN },
-    body: JSON.stringify({ discord_id: discordId, add_codes: addCodes, remove_codes: removeCodes })
+    body: JSON.stringify(withWorkerContext({ discord_id: discordId, add_codes: addCodes, remove_codes: removeCodes }))
   }).catch(function(e) { console.warn('Discord role sync error:', e); });
 }
 
@@ -73,7 +90,7 @@ async function getDiscordRosterMap(agents) {
   var key = ids.join(',');
   if (_discordRosterCache.key === key && Date.now() - _discordRosterCache.ts < 60000) return _discordRosterCache.map;
   var pairs = await Promise.all(ids.map(async function(id) {
-    var res = await fetch(WORKER_BASE + '/get-member-roles?discord_id=' + encodeURIComponent(id));
+    var res = await fetch(workerUrl('/get-member-roles', { discord_id: id }));
     var data = await res.json();
     return data && data.ok ? [id, data] : null;
   }));
@@ -90,7 +107,7 @@ function applyDiscordGrades(agents, roleMap) {
   });
 }
 async function getDiscordGradeCounts() {
-  var res = await fetch(WORKER_BASE + '/grade-role-counts?t=' + Date.now(), { cache: 'no-store' });
+  var res = await fetch(workerUrl('/grade-role-counts', { t: Date.now() }), { cache: 'no-store' });
   var data = await res.json();
   if (!data.ok) throw new Error(data.error || 'Erreur Discord');
   return data.counts || {};
@@ -151,7 +168,7 @@ async function syncDiscordToAgent(agentId) {
   var ag = await DB.getAgent(agentId);
   if (!ag || !ag.discord_id) { toast('Pas de Discord ID sur cette fiche.', 'error'); return; }
   try {
-    var res = await fetch(WORKER_BASE + '/get-member-roles?discord_id=' + ag.discord_id);
+    var res = await fetch(workerUrl('/get-member-roles', { discord_id: ag.discord_id }));
     var data = await res.json();
     if (!data.ok) throw new Error(data.error || 'Erreur Discord');
     var nonTracked = (ag.unites || []).filter(function(u) { return !TRACKED_DIVISIONS.includes(u); });
@@ -176,7 +193,10 @@ function sendLog(title, color, fields) {
     fetch(LOG_WORKER, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', 'x-log-token': LOG_TOKEN },
-      body: JSON.stringify({ embed: { title: title, color: color, fields: fields || [] } })
+      body: JSON.stringify(withWorkerContext({
+        channel_id: typeof LOG_CHANNEL_ID !== 'undefined' ? LOG_CHANNEL_ID : null,
+        embed: { title: title, color: color, fields: fields || [] }
+      }))
     });
   } catch(e) {}
 }
@@ -259,13 +279,13 @@ async function doDiscordLogin() {
   }
 }
 
-var WORKER_URL = 'https://sasp-intranet-bot.louisleurin.workers.dev';
+var WORKER_URL = WORKER_BASE;
 
 async function getDiscordRole(discordUserId) {
   console.log('[auth] discordUserId:', discordUserId);
   if (!discordUserId) return { role: null, apiOk: false, roles: [] };
   try {
-    var res = await fetch(WORKER_URL + '/auth/check-roles?user_id=' + encodeURIComponent(discordUserId));
+    var res = await fetch(workerUrl('/auth/check-roles', { user_id: discordUserId }));
     console.log('[auth] check-roles status:', res.status);
     if (!res.ok) return { role: null, apiOk: false, roles: [] };
     var data = await res.json();
@@ -585,7 +605,7 @@ function isReferent(grade) {
   return g ? (g.ordre||0) >= (offII.ordre||0) : false;
 }
 function gradeBadge(g) {
-  var pastille = (g === 'Rookie' || g === 'Trooper I') ? ' <span title="En formation" style="font-size:1.4em;vertical-align:middle">🎓</span>' : '';
+  var pastille = (g === 'Cadet' || g === 'Trooper I') ? ' <span title="En formation" style="font-size:1.4em;vertical-align:middle">🎓</span>' : '';
   return '<span class="badge badge-gold">' + esc(g) + pastille + '</span>';
 }
 function referentBadge() {
@@ -2469,12 +2489,12 @@ async function saveNotes(agentId) {
 async function renderAcademie() {
   var agents = await DB.getAgents({});
   var recrues = agents.filter(function(a) {
-    return (a.grade === 'Rookie' || a.grade === 'Trooper I') && a.statut !== 'Archivé';
+  return (a.grade === 'Cadet' || a.grade === 'Trooper I') && a.statut !== 'Archivé';
   });
   var formateurMap = {};
   agents.filter(function(a){ return a.is_formateur; }).forEach(function(f){ formateurMap[f.id] = f; });
 
-  var nRookie  = recrues.filter(function(r){ return r.grade === 'Rookie'; }).length;
+  var nRookie  = recrues.filter(function(r){ return r.grade === 'Cadet'; }).length;
   var nOfficer = recrues.filter(function(r){ return r.grade === 'Officer I'; }).length;
 
   var groups = {};
@@ -2522,14 +2542,14 @@ async function renderAcademie() {
     '</div>';
   }
   if (!recrues.length) {
-    groupsHtml = '<div class="empty-state"><div class="empty-icon">🎓</div><div class="empty-title">Aucune recrue en formation</div><div class="empty-sub">Les agents de grade Rookie ou Trooper I apparaissent ici.</div></div>';
+    groupsHtml = '<div class="empty-state"><div class="empty-icon">🎓</div><div class="empty-title">Aucune recrue en formation</div><div class="empty-sub">Les agents de grade Cadet ou Trooper I apparaissent ici.</div></div>';
   }
 
   setContent(
     '<div class="welcome-bar"><div><h1 style="font-size:1.5rem">Académie</h1><p class="text-muted" style="margin-top:3px;font-size:.84rem">Suivi des recrues en formation</p></div></div>' +
     '<div class="stats-grid">' +
       statCard('🎓', 'Recrues totales', recrues.length) +
-      statCard('🟡', 'Rookie', nRookie) +
+      statCard('🟡', 'Cadet', nRookie) +
       statCard('🔵', 'Trooper I', nOfficer) +
       statCard('👤', 'Formateurs', Object.keys(formateurMap).length) +
     '</div>' +

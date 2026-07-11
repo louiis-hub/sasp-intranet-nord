@@ -25,18 +25,17 @@ CREATE TABLE IF NOT EXISTS grades (
 );
 
 INSERT INTO grades (nom, abrev, ordre) VALUES
-  ('Recruit',          'RCT',   1),
-  ('Trooper I',        'TPR I', 2),
-  ('Trooper II',       'TPR II',3),
-  ('Senior Trooper',   'S.TPR', 4),
-  ('Corporal',         'CPL',   5),
-  ('Sergeant I',       'SGT I', 6),
-  ('Sergeant II',      'SGT II',7),
-  ('Lieutenant I',     'LT I',  8),
-  ('Lieutenant II',    'LT II', 9),
-  ('Captain',          'CPT',  10),
-  ('Deputy Commissioner','D.COM',11),
-  ('Commissioner',     'COM',  12)
+  ('Cadet',               'CDT',    1),
+  ('Trooper I',           'TPR I',  2),
+  ('Trooper II',          'TPR II', 3),
+  ('Trooper III',         'TPR III',4),
+  ('Senior Lead Trooper', 'SLT',    5),
+  ('Sergeant I',          'SGT I',  6),
+  ('Sergeant II',         'SGT II', 7),
+  ('Lieutenant I',        'LT I',   8),
+  ('Lieutenant II',       'LT II',  9),
+  ('Capitaine',           'CPT',   10),
+  ('Commandant',          'CMD',   11)
 ON CONFLICT (nom) DO NOTHING;
 
 -- ── Unités ────────────────────────────────────────────────────────

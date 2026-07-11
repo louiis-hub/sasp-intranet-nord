@@ -13,7 +13,7 @@ var DB = {
       provider: 'discord',
       options: {
         scopes: 'identify guilds.members.read',
-        redirectTo: 'https://louiis-hub.github.io/sasp-intranet/',
+        redirectTo: 'https://louiis-hub.github.io/sasp-intranet-nord/',
         queryParams: { prompt: 'consent' }
       }
     });

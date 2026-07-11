@@ -1182,6 +1182,10 @@ function faqBlock(title, body) {
   '</div>';
 }
 
+function faqLink(page, label) {
+  return '<button class="btn btn-outline btn-sm" style="margin-top:10px" onclick="navigate(\'' + page + '\')">' + esc(label) + '</button>';
+}
+
 async function renderFAQ() {
   setContent(
     '<div class="flex-between mb-20 flex-wrap gap-8">' +
@@ -1189,13 +1193,14 @@ async function renderFAQ() {
     '</div>' +
     '<div class="grid2">' +
       faqBlock('Premiere connexion', '<p>Connectez-vous avec Discord. Le site verifie vos roles sur le Discord SASP Nord. Les roles <b>Admin</b> et <b>Commandant</b> donnent les acces administrateur.</p>') +
-      faqBlock('Importer les agents depuis Discord', '<p>Allez dans <b>Agents</b>, puis cliquez sur <b>Importer Discord</b>. Le bot lit les membres qui ont le role agent Nord et cree les fiches manquantes.</p><p>Le pseudo Discord doit etre au format <b>[matricule] Prenom Nom</b>, par exemple <b>[111] Pedro Delgado</b>.</p>') +
-      faqBlock('Ajouter un agent manuellement', '<p>Allez dans <b>Agents</b>, cliquez sur <b>Ajouter un agent</b>, remplissez au minimum prenom, nom, matricule, grade et Discord ID, puis enregistrez.</p>') +
-      faqBlock('Modifier une fiche agent', '<p>Depuis <b>Agents</b>, ouvrez la fiche, puis cliquez sur <b>Modifier</b>. Les changements importants sont envoyes dans le salon logs du Nord.</p>') +
+      faqBlock('Importer les agents depuis Discord', '<p>Allez dans <b>Agents</b>, puis cliquez sur <b>Importer Discord</b>. Le bot lit les membres qui ont le role agent Nord et cree les fiches manquantes.</p><p>Le pseudo Discord doit etre au format <b>[matricule] Prenom Nom</b>, par exemple <b>[111] Pedro Delgado</b>.</p>' + faqLink('agents', 'Ouvrir Agents')) +
+      faqBlock('Ajouter un agent manuellement', '<p>Allez dans <b>Agents</b>, cliquez sur <b>Ajouter un agent</b>, remplissez au minimum prenom, nom, matricule, grade et Discord ID, puis enregistrez.</p>' + faqLink('agents', 'Ouvrir Agents')) +
+      faqBlock('Modifier une fiche agent', '<p>Depuis <b>Agents</b>, ouvrez la fiche, puis cliquez sur <b>Modifier</b>. Les changements importants sont envoyes dans le salon logs du Nord.</p>' + faqLink('agents', 'Ouvrir Agents')) +
       faqBlock('Synchroniser Discord vers une fiche', '<p>Sur une fiche agent, le bouton <b>Sync Discord</b> recupere grade, divisions et permissions depuis les roles Discord du membre.</p>') +
-      faqBlock('Pointeuse', '<p>Les agents utilisent la page <b>Pointeuse</b> pour prendre ou quitter leur service. L historique permet de suivre les heures par semaine.</p>') +
+      faqBlock('Pointeuse', '<p>Les agents utilisent la page <b>Pointeuse</b> pour prendre ou quitter leur service. L historique permet de suivre les heures par semaine.</p>' + faqLink('pointeuse', 'Ouvrir Pointeuse')) +
       faqBlock('Annuaire', '<p>Quand une fiche agent est creee ou modifiee, l annuaire Discord Nord peut etre mis a jour automatiquement avec les matricules, noms et numeros de telephone.</p>') +
-      faqBlock('Probleme courant', '<p>Si un agent ne voit pas le site, verifiez qu il a bien le role agent Nord sur Discord. Si l import Discord ne trouve personne, verifiez que le bot a le <b>Server Members Intent</b> active dans Discord Developer Portal.</p>') +
+      faqBlock('Grades et divisions', '<p>Les pages <b>Grades</b> et <b>Divisions</b> permettent de consulter la hierarchie et les unites configurees sur le site Nord.</p>' + faqLink('grades', 'Ouvrir Grades') + ' ' + faqLink('units', 'Ouvrir Divisions')) +
+      faqBlock('Probleme courant', '<p>Si un agent ne voit pas le site, verifiez qu il a bien le role agent Nord sur Discord. Si l import Discord ne trouve personne, verifiez que le bot a le <b>Server Members Intent</b> active dans Discord Developer Portal.</p>' + faqLink('settings', 'Ouvrir Mon compte')) +
     '</div>'
   );
 }

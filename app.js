@@ -226,6 +226,7 @@ var NAV = [
   { id: 'grades',   icon: '🎖️', label: 'Grades' },
   { id: 'units',     icon: '🚔', label: 'Divisions' },
   { id: 'pointeuse', icon: '⏱️', label: 'Pointeuse' },
+  { id: 'faq',      icon: '❓', label: 'FAQ' },
   { id: 'cartes',   icon: '🗺️', label: 'Cartes' },
   { divider: true },
   { id: 'ftf',      icon: '🎯', label: 'Fugitive Task Force', ftfOnly: true },
@@ -240,7 +241,7 @@ var NAV = [
 
 var PAGE_TITLES = {
   dashboard:'Tableau de bord', agents:'Agents', 'agent-profile':'Fiche agent',
-  grades:'Grades', units:'Divisions', pointeuse:'Pointeuse', 'pointeuse-historique':'Historique pointages', mdt:'Guide MDT', vehicles:'Véhicules', cartes:'Cartes',
+  grades:'Grades', units:'Divisions', pointeuse:'Pointeuse', 'pointeuse-historique':'Historique pointages', mdt:'Guide MDT', vehicles:'Véhicules', cartes:'Cartes', faq:'FAQ',
   info:'Informations', manuel:'Manuel', tenue:'Tenues', document:'Documents',
   archives:'Archives', ceremonie:'Prépa Cérémonie', completude:'Complétude fiches',
   'global-settings':'Réglages globaux',
@@ -441,7 +442,7 @@ async function navigate(page, pd) {
   _quill = null;
   setContent('<div class="loader-block"><div class="spinner"></div><p>Chargement…</p></div>');
   var _permCfg = {}; try { _permCfg = JSON.parse(localStorage.getItem('sasp_permissions') || '{}'); } catch(e) {}
-  var AGENT_ALLOWED   = _permCfg.agentPages   || ['dashboard','agents','agent-profile','grades','units','pointeuse','mdt','vehicles','cartes','info','manuel','tenue','document'];
+  var AGENT_ALLOWED   = _permCfg.agentPages   || ['dashboard','agents','agent-profile','grades','units','pointeuse','faq','mdt','vehicles','cartes','info','manuel','tenue','document'];
   var ACADEMY_ALLOWED = _permCfg.academyPages  || null;
   if (page === 'ftf' && !canAccessFTF()) {
     setContent('<div class="empty-state"><div class="empty-icon">FTF</div><div class="empty-title">AccÃ¨s FTF restreint</div><div class="empty-sub">Cette page est rÃ©servÃ©e aux utilisateurs avec le rÃ´le Discord FTF.</div></div>');
@@ -455,12 +456,12 @@ async function navigate(page, pd) {
     setContent('<div class="empty-state"><div class="empty-icon">🔒</div><div class="empty-title">Accès restreint</div><div class="empty-sub">Cette section est réservée au Command Staff et aux Superviseurs.</div></div>');
     return;
   }
-  var RH_ALLOWED = ['dashboard', 'agents', 'agent-profile', 'grades', 'units', 'pointeuse', 'cartes', 'stats', 'archives', 'recap', 'ceremonie'];
+  var RH_ALLOWED = ['dashboard', 'agents', 'agent-profile', 'grades', 'units', 'pointeuse', 'faq', 'cartes', 'stats', 'archives', 'recap', 'ceremonie'];
   if (S.role === 'rh' && page !== 'ftf' && RH_ALLOWED.indexOf(page) === -1) {
     setContent('<div class="empty-state"><div class="empty-icon">🔒</div><div class="empty-title">Accès restreint</div><div class="empty-sub">Cette section est réservée aux administrateurs.</div></div>');
     return;
   }
-  var VISITEUR_ALLOWED = ['dashboard', 'pointeuse', 'cartes'];
+  var VISITEUR_ALLOWED = ['dashboard', 'pointeuse', 'faq', 'cartes'];
   if (S.role === 'visiteur' && page !== 'ftf' && VISITEUR_ALLOWED.indexOf(page) === -1) {
     setContent('<div class="empty-state"><div class="empty-icon">🔒</div><div class="empty-title">Accès restreint</div><div class="empty-sub">Votre rôle ne permet pas d\'accéder à cette section.</div></div>');
     return;
@@ -486,6 +487,7 @@ async function navigate(page, pd) {
       vehicles:       renderVehicles,
       pointeuse:               renderPointeuse,
       'pointeuse-historique':  renderPointeuseHistorique,
+      faq:                     renderFAQ,
       cartes:                  renderCartes,
       ceremonie:      renderCeremonie,
       archives:       renderArchives,
@@ -1170,6 +1172,32 @@ function statCard(icon, label, val, cls) {
 }
 function quickLink(icon, label, page) {
   return '<button class="btn btn-ghost btn-sm" style="justify-content:flex-start;gap:10px" onclick="navigate(\'' + page + '\')">' + icon + ' ' + label + '</button>';
+}
+
+// ══ FAQ ═════════════════════════════════════════════════════════════
+function faqBlock(title, body) {
+  return '<div class="card">' +
+    '<div class="card-head"><div class="card-icon">?</div><div><div class="card-title">' + esc(title) + '</div></div></div>' +
+    '<div class="text-muted" style="line-height:1.7;font-size:.92rem">' + body + '</div>' +
+  '</div>';
+}
+
+async function renderFAQ() {
+  setContent(
+    '<div class="flex-between mb-20 flex-wrap gap-8">' +
+      '<div><h1 style="font-size:1.4rem">FAQ SASP Nord</h1><p class="text-muted" style="font-size:.84rem;margin-top:3px">Guide rapide pour utiliser l intranet sans casser les donnees.</p></div>' +
+    '</div>' +
+    '<div class="grid2">' +
+      faqBlock('Premiere connexion', '<p>Connectez-vous avec Discord. Le site verifie vos roles sur le Discord SASP Nord. Les roles <b>Admin</b> et <b>Commandant</b> donnent les acces administrateur.</p>') +
+      faqBlock('Importer les agents depuis Discord', '<p>Allez dans <b>Agents</b>, puis cliquez sur <b>Importer Discord</b>. Le bot lit les membres qui ont le role agent Nord et cree les fiches manquantes.</p><p>Le pseudo Discord doit etre au format <b>[matricule] Prenom Nom</b>, par exemple <b>[111] Pedro Delgado</b>.</p>') +
+      faqBlock('Ajouter un agent manuellement', '<p>Allez dans <b>Agents</b>, cliquez sur <b>Ajouter un agent</b>, remplissez au minimum prenom, nom, matricule, grade et Discord ID, puis enregistrez.</p>') +
+      faqBlock('Modifier une fiche agent', '<p>Depuis <b>Agents</b>, ouvrez la fiche, puis cliquez sur <b>Modifier</b>. Les changements importants sont envoyes dans le salon logs du Nord.</p>') +
+      faqBlock('Synchroniser Discord vers une fiche', '<p>Sur une fiche agent, le bouton <b>Sync Discord</b> recupere grade, divisions et permissions depuis les roles Discord du membre.</p>') +
+      faqBlock('Pointeuse', '<p>Les agents utilisent la page <b>Pointeuse</b> pour prendre ou quitter leur service. L historique permet de suivre les heures par semaine.</p>') +
+      faqBlock('Annuaire', '<p>Quand une fiche agent est creee ou modifiee, l annuaire Discord Nord peut etre mis a jour automatiquement avec les matricules, noms et numeros de telephone.</p>') +
+      faqBlock('Probleme courant', '<p>Si un agent ne voit pas le site, verifiez qu il a bien le role agent Nord sur Discord. Si l import Discord ne trouve personne, verifiez que le bot a le <b>Server Members Intent</b> active dans Discord Developer Portal.</p>') +
+    '</div>'
+  );
 }
 
 // ══ AGENTS ════════════════════════════════════════════════════════

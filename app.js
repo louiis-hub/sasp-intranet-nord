@@ -42,7 +42,7 @@ function parseMoneyInput(v) {
 }
 
 // ── Discord logs ────────────────────────────────────────────────────
-var WORKER_BASE = 'https://sasp-intranet-bot.louisleurin.workers.dev';
+var WORKER_BASE = 'https://sasp-nord-bot.louisleurin.workers.dev';
 var LOG_WORKER  = WORKER_BASE + '/log';
 var LOG_TOKEN   = 'SASPlogs2026!';
 var TRACKED_DIVISIONS = ['CID','SWAT','PA','CNU','TU','SYND','LP'];

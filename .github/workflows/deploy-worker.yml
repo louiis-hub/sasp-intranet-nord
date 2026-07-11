@@ -1,6 +1,7 @@
 name: Deploy Worker Nord
 
 on:
+  workflow_dispatch:
   push:
     branches: [gh-pages]
     paths:

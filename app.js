@@ -235,7 +235,6 @@ var NAV = [
   { group: 'ADMINISTRATION', staffOnly: true },
   { id: 'archives',        icon: '🗃️', label: 'Archives',          staffOnly: true },
   { id: 'stats',           icon: '📈', label: 'Statistiques',       staffOnly: true },
-  { id: 'settings',        icon: '⚙️', label: 'Mon compte',         staffOnly: true },
   { id: 'ceremonie',       icon: '🎖️', label: 'Prépa Cérémonie',    ceremonyOnly: true },
 ];
 
@@ -1291,7 +1290,7 @@ async function renderFAQ() {
       faqBlock('Pointeuse', '<p>Les agents utilisent la page <b>Pointeuse</b> pour prendre ou quitter leur service. L historique permet de suivre les heures par semaine.</p>' + faqLink('pointeuse', 'Ouvrir Pointeuse')) +
       faqBlock('Annuaire', '<p>Quand une fiche agent est creee ou modifiee, l annuaire Discord Nord peut etre mis a jour automatiquement avec les matricules, noms et numeros de telephone.</p>') +
       faqBlock('Grades et divisions', '<p>Les pages <b>Grades</b> et <b>Divisions</b> permettent de consulter la hierarchie et les unites configurees sur le site Nord.</p>' + faqLink('grades', 'Ouvrir Grades') + ' ' + faqLink('units', 'Ouvrir Divisions')) +
-      faqBlock('Probleme courant', '<p>Si un agent ne voit pas le site, verifiez qu il a bien le role agent Nord sur Discord. Si l import Discord ne trouve personne, verifiez que le bot a le <b>Server Members Intent</b> active dans Discord Developer Portal.</p>' + faqLink('settings', 'Ouvrir Mon compte')) +
+      faqBlock('Probleme courant', '<p>Si un agent ne voit pas le site, verifiez qu il a bien le role agent Nord sur Discord. Si l import Discord ne trouve personne, verifiez que le bot a le <b>Server Members Intent</b> active dans Discord Developer Portal.</p>') +
     '</div>'
   );
 }

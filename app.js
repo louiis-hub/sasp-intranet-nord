@@ -247,21 +247,9 @@ var PAGE_TITLES = {
   ftf:'FTF', 'ftf-dossier':'Dossier FTF', stats:'Statistiques', search:'Recherche', settings:'Mon compte'
 };
 
-function finishArrivalSplash(delay) {
-  var splash = document.getElementById('arrivalSplash');
-  if (!splash || splash.classList.contains('done')) return;
-  window.setTimeout(function() {
-    splash.classList.add('done');
-    window.setTimeout(function() {
-      if (splash && splash.parentNode) splash.parentNode.removeChild(splash);
-    }, 900);
-  }, typeof delay === 'number' ? delay : 3200);
-}
-
 // ── Boot ───────────────────────────────────────────────────────────
 (async function boot() {
   var isOAuthReturn = /[?&](code|error|error_description)=/.test(window.location.search || '');
-  finishArrivalSplash(isOAuthReturn ? 250 : undefined);
   try {
     var redirectSession = await DB.finishOAuthRedirect();
     var session = redirectSession || (await DB.getSession()).data.session;
